@@ -1,0 +1,27 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "skipLibCheck": true,
+    "strict": true,
+    "importsNotUsedAsValues": "remove",
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+    "typeRoots": [
+      "node_modules/@astrojs/astro-types",
+      "./node_modules/@types/",
+      "./node_modules"
+    ],
+    "jsxImportSource": "react"
+  },
+  "includes": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist", ".cloudflare", "src/schemas"]
+}

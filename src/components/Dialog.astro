@@ -1,0 +1,43 @@
+---
+import { HiX } from "react-icons/hi";
+interface Props {
+  id: string;
+}
+---
+
+<button onclick={`window['${Astro.props.id}'].showModal()`}>
+  <slot name="launcher" />
+</button>
+
+<dialog
+  class="w-full h-full max-w-[100vw] max-h-[100vh] bg-transparent ~px-2/16 pt-[8vh] ~pb-3/16 overflow-y-scroll overscroll-contain"
+  id={Astro.props.id}
+>
+  <div
+    class="relative m-auto w-full max-w-[28rem] bg-base rounded-3xl overflow-hidden flex flex-col ~py-6/10 ~gap-6/8 [&>*]:~px-6/10"
+  >
+    <div class="absolute top-[-1000px]" tabindex={0}></div>
+    <div class="flex items-center gap-6 -mb-2">
+      <hr class="border-t border-line flex-1" />
+      <button onclick={`window['${Astro.props.id}'].close()`} class="">
+        <HiX className="size-8 text-prose/60" />
+      </button>
+    </div>
+    <header class="flex flex-col gap-3 pb-4">
+      <slot name="header" />
+    </header>
+    <main class="~py-6/10 bg-surface rounded-3xl">
+      <slot name="main" />
+    </main>
+    <footer class="flex flex-col items-center ~-mt-0/2">
+      <slot name="footer" />
+    </footer>
+  </div>
+</dialog>
+
+<script>
+  addEventListener("click", (event) => {
+    const target = event.target as HTMLDialogElement;
+    if (target.tagName === "DIALOG") target.close();
+  });
+</script>

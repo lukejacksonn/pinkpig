@@ -1,0 +1,32 @@
+---
+import { HiOutlineCalendar, HiOutlinePhone } from "react-icons/hi2";
+
+const { title } = Astro.props;
+---
+
+<section class="relative flex flex-col ~py-8/12 ~gap-8/12 items-center">
+  <h2
+    class="font-display font-bold ~text-4xl/8xl text-center max-w-[15ch] text-title"
+  >
+    {title}
+  </h2>
+  <div
+    class="w-full flex flex-col ~px-8/24 sm:px-0 sm:w-auto sm:flex-row ~gap-4/6"
+  >
+    <a
+      target="_blank"
+      href="https://patient.medeohealth.com/booking/yashoda-singh-md-the-aesthetic-medicine-clinic"
+      class="flex items-center justify-center gap-4 bg-primary-800 ~px-6/8 ~py-3/4 ~rounded-xl/3xl text-white ~text-xl/2xl"
+    >
+      <span class="font-light">Bookings</span>
+      <HiOutlineCalendar className="~w-6/8 ~h-6/8" />
+    </a>
+    <a
+      href="/contact"
+      class="flex items-center justify-center gap-4 border-primary-800 border-2 ~px-6/8 ~py-3/4 ~rounded-xl/3xl text-primary-800 ~text-xl/2xl"
+    >
+      <span class="font-light">Contact</span>
+      <HiOutlinePhone className="~w-6/8 ~h-6/8 scale-x-[-1]" />
+    </a>
+  </div>
+</section>

@@ -1,0 +1,82 @@
+---
+import BaseLayout from "../layouts/Base.astro";
+
+import { Vehicle } from "../schemas/documents/vehicle/schema";
+import { Service } from "../schemas/documents/service/schema";
+import { Company } from "../schemas/documents/company/schema";
+import { Brand } from "../schemas/documents/brand/schema";
+import { Category } from "../schemas/documents/category/schema";
+import { Promotion } from "../schemas/documents/promotions/schema";
+
+import { List, Item } from "../components/Carousel";
+import { Banner, Slide } from "../components/Banner";
+
+const company = await Company.doc();
+if (!company) return new Response("Company not found", { status: 404 });
+
+const [vehicles, brands, categories, services, promotions] = await Promise.all([
+  Vehicle.list({ range: "[0..7]" }),
+  Brand.list(),
+  Category.list(),
+  Service.list({ range: "[0..7]" }),
+  Promotion.list({ range: "[0..3]" }),
+]);
+---
+
+<BaseLayout title={company.tagline}>
+  <Banner
+    >{
+      promotions.map((promotion, i) => (
+        <Slide.Promotion promotion={promotion} priority={i === 0} />
+      ))
+    }
+  </Banner>
+  <List.Carousel
+    heading="Vehicle Types"
+    link={{ href: "/vehicles", text: "Show All" }}
+  >
+    {
+      categories.map((category) => (
+        <li class="flex-none w-1/5 min-w-[8rem]">
+          <Item.Category category={category} />
+        </li>
+      ))
+    }
+  </List.Carousel>
+  <List.Carousel
+    heading="Latest Vehicles"
+    link={{ href: "/vehicles", text: "Show All" }}
+  >
+    {
+      vehicles.map((vehicle) => (
+        <li class="flex-none w-1/4 min-w-[16rem]">
+          <Item.Vehicle vehicle={vehicle} />
+        </li>
+      ))
+    }
+  </List.Carousel>
+  <List.Carousel
+    heading="Vehicle Brands"
+    link={{ href: "/vehicles", text: "Show All" }}
+  >
+    {
+      brands.map((brand) => (
+        <li class="flex-none w-1/5 min-w-[8rem]">
+          <Item.Brand brand={brand} />
+        </li>
+      ))
+    }
+  </List.Carousel>
+  <List.Carousel
+    heading="Services"
+    link={{ href: "/services", text: "Show All" }}
+  >
+    {
+      services.map((service) => (
+        <li class="w-1/3 min-w-[18rem]">
+          <Item.Service service={service} />
+        </li>
+      ))
+    }
+  </List.Carousel>
+</BaseLayout>

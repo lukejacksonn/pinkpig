@@ -1,0 +1,209 @@
+---
+import { PortableText } from "astro-portabletext";
+
+import BaseLayout from "../../layouts/Base.astro";
+
+import {
+  Vehicle,
+  type VehicleType,
+} from "../../schemas/documents/vehicle/schema";
+import { Company } from "../../schemas/documents/company/schema";
+
+import { List, Item } from "../../components/Carousel";
+import { Table } from "../../components/Table";
+
+import SanityImage from "../../components/SanityImage";
+import Dialog from "../../components/Dialog.astro";
+
+import { EnquiryForm } from "../../forms/enquiry";
+
+import { HiOutlineKey, HiOutlinePhone } from "react-icons/hi2";
+import { FaTelegram, FaWhatsapp } from "react-icons/fa";
+
+const [vehicle, company] = await Promise.all([
+  Vehicle.doc(Astro.params.slug!, { references: ["brand", "category"] }),
+  Company.doc(),
+]);
+
+const numberOfSuggestions = 8;
+const alreadySuggested = (next: VehicleType[]) =>
+  [vehicle, ...next]
+    .map((v) => v._id)
+    .map((v) => `"${v}"`)
+    .join(", ");
+
+// Get vehicles from the same brand
+const vehicles = await Vehicle.list({
+  filter: `_id != "${vehicle._id}" && brand._ref == "${vehicle.brand._id}" && category._ref == "${vehicle.category._id}"`,
+  range: `[0..${numberOfSuggestions}]`,
+});
+
+// If there are not enough vehicles from the same brand, get vehicles from the same category
+if (vehicles.length < numberOfSuggestions) {
+  const ofTheSameCategory = await Vehicle.list({
+    filter: `_id != "${vehicle._id}" && !(_id in [${alreadySuggested(vehicles)}]) && category._ref == "${vehicle.category._id}"`,
+    range: `[0..${numberOfSuggestions - vehicles.length}]`,
+  });
+  vehicles.push(...ofTheSameCategory);
+}
+
+// If there are still not enough vehicles, get any vehicles
+if (vehicles.length < numberOfSuggestions) {
+  const otherVehicles = await Vehicle.list({
+    filter: `_id != "${vehicle._id}" && !(_id in [${alreadySuggested(vehicles)}])`,
+    range: `[0..${numberOfSuggestions - vehicles.length}]`,
+  });
+  vehicles.push(...otherVehicles);
+}
+---
+
+<BaseLayout
+  title={vehicle.name}
+  description={vehicle.description}
+  image={vehicle.image}
+>
+  <section class="max-w-screen-xl flex flex-col items-center ~gap-10/16">
+    <div
+      class="w-screen ~px-3/8 flex [&_img]:rounded-none overflow-x-scroll h-[77svh]"
+    >
+      {
+        [vehicle.image, ...vehicle.images].map((image) => (
+          <div class="[&:first-child>img]:[clip-path:polygon(0_5vh,5vh_0,100%_0,100%_100%,100%_100%,0%_100%)] [&:first-child>img]:rounded-bl-[2rem] [&:last-child>img]:rounded-r-[2rem]">
+            <SanityImage
+              className="flex-none w-[28rem] max-w-[94vw] h-full object-cover"
+              src={image}
+            />
+          </div>
+        ))
+      }
+    </div>
+    <div class="flex flex-col-reverse md:flex-row ~px-3/16 ~gap-8/12">
+      <article
+        class="self-start relative flex-[2] max-w-screen-md flex flex-col ~gap-6/10 border-l ~p-5/16 bg-base ~-mt-6/16"
+      >
+        <h2 class="font-display font-bold ~text-4xl/6xl text-primary-800">
+          {vehicle.name}
+        </h2>
+        <div
+          class="flex items-center gap-2 text-prose font-prose bg-surface self-start px-3 py-1"
+        >
+          <p class="font-bold tracking-widest uppercase">
+            {vehicle.category.name}
+          </p>
+          <span>•</span>
+          <p class="font-prose text-sm">
+            AED {vehicle.pricing?.perDay} / ${
+              Math.round(vehicle.pricing?.perDay / 3.6)
+            }
+          </p>
+        </div>
+        <p class="font-prose ~text-base/lg !leading-loose">
+          {vehicle.description}
+        </p>
+        <div class="flex items-center gap-10">
+          <h3 class="font-display text-xl text-prose">About</h3>
+          <hr class="flex-1 border-t border-line" />
+        </div>
+        <div class="flex flex-col ~gap-6/10">
+          <div class="relative prose prose-zinc prose-a:break-all">
+            <PortableText value={vehicle.content} />
+          </div>
+        </div>
+      </article>
+      <aside
+        class="flex-[1.5] rounded-3xl rounded-t-[3.2rem] flex flex-col ~gap-8/10 bg-surface ~p-5/8 -mt-[16vw] sm:w-auto relative self-start"
+      >
+        <div class="flex flex-col gap-5">
+          <Dialog id="service-rental-form">
+            <Fragment slot="launcher">
+              <div
+                class="-mx-1 flex items-center justify-between gap-6 bg-primary-800 px-8 py-6 rounded-full text-white ~text-xl/2xl"
+              >
+                <span class="font-medium font-prose whitespace-nowrap">
+                  Rent this Vehicle
+                </span>
+                <HiOutlineKey className="flex-none w-8 h-8 scale-x-[-1]" />
+              </div>
+            </Fragment>
+            <Fragment slot="header">
+              <h3 class="font-display font-bold ~text-2xl/4xl text-prose">
+                Rental Enquiry
+              </h3>
+              <p class="text-prose text-primary-400">
+                Let us know a bit more about your trip and we will get back to
+                you with a quote
+              </p>
+            </Fragment>
+            <Fragment slot="main">
+              <EnquiryForm product={vehicle} client:visible />
+            </Fragment>
+            <Fragment slot="footer">
+              <button
+                type="button"
+                class="text-prose/60 underline underline-offset-8"
+                onclick="document.getElementById('vehicle-rental-form')?.close()"
+              >
+                Continue Browsing Vehicles
+              </button>
+            </Fragment>
+          </Dialog>
+          <div class="flex gap-4 [&>*]:w-full [&>*]:rounded-2xl [&>*]:p-4">
+            <a
+              href={`https://api.whatsapp.com/send/?phone=${company.phone?.replace(/\+/g, "").replace(/\s/g, "")}&text=Hi%21+I+am+interested+in+renting+the+${vehicle.name}&type=phone_number&app_absent=0`}
+              class="bg-[#25D366] flex justify-center"
+            >
+              <FaWhatsapp className="w-6 h-6 fill-current text-white" />
+            </a>
+            <a
+              href={`https://t.me/${company.telegram}`}
+              class="bg-[#049be5] flex justify-center"
+            >
+              <FaTelegram className="w-6 h-6 fill-current text-white" />
+            </a>
+            <a
+              href={`tel:${company.phone?.replace(/\+/g, "").replace(/\s/g, "")}`}
+              class="bg-red-500 flex justify-center"
+            >
+              <HiOutlinePhone className="w-6 h-6 fill-current text-white" />
+            </a>
+          </div>
+        </div>
+        <Table
+          title="Pricing"
+          data={vehicle.pricing}
+          fields={["perDay", "perWeek", "perMonth"]}
+          keyFn={(key) => key.replace(/Per /, "")}
+          valueFn={(value) =>
+            `AED ${Intl.NumberFormat().format(value)} / $${Intl.NumberFormat().format(Math.round(value / 3.6))}`}
+          footer="The quoted price doesn’t include additional 5% VAT. There is a 3% transaction fee when paying by credit or debit card. There is a 7% transaction fee when paying with American Express."
+        />
+        <Table
+          title="Stats"
+          data={vehicle.stats}
+          fields={[
+            "color",
+            "year",
+            "seats",
+            "acceleration",
+            "maxSpeed",
+            "engine",
+            "transmission",
+            "fuel",
+          ]}
+        />
+      </aside>
+    </div>
+  </section>
+  <List.Carousel
+    heading="Similar Vehicles"
+    link={{ href: "/vehicles", text: "Show All" }}
+  >
+    {
+      vehicles.map((vehicle) => (
+        <li class="flex-none w-1/5 min-w-[16rem]">
+          <Item.Vehicle vehicle={vehicle} />
+        </li>
+      ))
+    }
+  </List.Carousel>
+</BaseLayout>

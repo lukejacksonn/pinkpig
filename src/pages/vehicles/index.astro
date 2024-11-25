@@ -1,0 +1,88 @@
+---
+import BaseLayout from "../../layouts/Base.astro";
+
+import { Vehicle } from "../../schemas/documents/vehicle/schema";
+import { Brand, type BrandType } from "../../schemas/documents/brand/schema";
+import {
+  Category,
+  type CategoryType,
+} from "../../schemas/documents/category/schema";
+
+import { List, Item, Pill } from "../../components/Carousel";
+
+const [vehicles, brands, categories] = await Promise.all([
+  Vehicle.list({ references: ["brand", "category"] }),
+  Brand.list(),
+  Category.list(),
+]);
+
+const getSelected = (key: string) =>
+  (Astro.url.searchParams.get(key)?.split(",") ?? []).reduce(
+    (acc: { [key: string]: boolean }, category: string) => {
+      acc[category] = true;
+      return acc;
+    },
+    {}
+  );
+
+const selectedBrands = getSelected("brand");
+const selectedCategories = getSelected("category");
+
+const filterName = Object.keys({ ...selectedBrands, ...selectedCategories })[0];
+const filteredVehicles =
+  Object.keys({ ...selectedBrands, ...selectedCategories }).length > 0
+    ? vehicles.filter(
+        (vehicle) =>
+          selectedBrands[vehicle.brand.slug.current] ||
+          selectedCategories[vehicle.category.slug.current]
+      )
+    : vehicles;
+---
+
+<BaseLayout
+  title="Vehicles"
+  description="The paddock fleet consists of some of the most prestigious luxury and super cars in Dubai."
+>
+  <List.Carousel gap="sm" pad="sm" id="filters">
+    {
+      [...categories, ...brands].map((item: CategoryType | BrandType) => (
+        <Pill
+          icon={item._type === "brand" ? item.logo : item.icon}
+          text={item.name}
+          href={`?${item._type}=${item.slug.current}`}
+          active={Astro.url.searchParams.get(item._type) === item.slug.current}
+        />
+      ))
+    }
+  </List.Carousel>
+  <List.Grid
+    heading={`${[filteredVehicles.length, filterName].filter(Boolean).join(" ")} Vehicles`}
+    link={{ href: "/vehicles", text: "Show All" }}
+    gap="sm"
+    pad="sm"
+  >
+    {filteredVehicles.map((vehicle) => <Item.Vehicle vehicle={vehicle} />)}
+  </List.Grid>
+</BaseLayout>
+
+<script>
+  let pos: number | undefined;
+
+  document.addEventListener("astro:before-preparation", () => {
+    const container: HTMLElement | null = document.getElementById("filters");
+    pos = container?.scrollLeft;
+  });
+
+  document.addEventListener("astro:page-load", () => {
+    const container: HTMLElement | null = document.getElementById("filters");
+    const active: HTMLElement | null = document.querySelector(
+      "[data-active='true']"
+    );
+    if (container && pos !== undefined) {
+      container.scrollLeft = pos;
+    } else if (active && container) {
+      const x = getComputedStyle(container).getPropertyValue("padding-left");
+      container.scrollLeft = active.offsetLeft - parseFloat(x);
+    }
+  });
+</script>

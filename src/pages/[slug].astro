@@ -1,0 +1,123 @@
+---
+import BaseLayout from "../layouts/Base.astro";
+
+import SanityImage from "../components/SanityImage";
+import { PortableText } from "astro-portabletext";
+
+import { Service } from "../schemas/documents/service/schema";
+
+import { HiOutlineCalendar } from "react-icons/hi";
+import { HiOutlineChatBubbleLeft } from "react-icons/hi2";
+import Dialog from "../components/Dialog.astro";
+import { EnquiryForm } from "../forms/enquiry";
+
+const service = await Service.doc(Astro.params.slug!);
+if (!service) return new Response("Not Found", { status: 404 });
+
+const services = await Service.list({ range: "[0..7]" });
+---
+
+<BaseLayout
+  title={service.name}
+  description={service.description}
+  image={service.image}
+>
+  <section class="max-w-screen-xl flex flex-col items-center">
+    <SanityImage
+      className="w-screen object-cover aspect-[21/9] max-w-[100vw]"
+      src={service.image}
+    />
+    <div class="flex flex-col lg:flex-row ~px-6/16 gap-8">
+      <article
+        class="relative flex-[2] max-w-screen-md bg-surface mt-8 lg:-mt-16 ~p-8/16 flex flex-col ~gap-8/12 rounded-3xl"
+      >
+        <h2 class="font-display font-bold ~text-5xl/7xl text-primary-800">
+          {service.name}
+        </h2>
+        <hr class="w-32 border-t border-t-primary-500" />
+        <div class="prose prose-zinc sm:prose-lg prose-a:break-all">
+          <PortableText value={service.content} />
+        </div>
+      </article>
+      <aside class="flex-1 mt-8 rounded-3xl flex flex-col gap-10">
+        <div class="flex flex-col gap-4">
+          <Dialog id="vehicle-rental-form">
+            <Fragment slot="launcher">
+              <div
+                class="-mx-1 flex items-center justify-between gap-6 bg-primary-800 px-8 py-6 rounded-full text-white ~text-xl/2xl"
+              >
+                <span class="font-medium font-prose whitespace-nowrap">
+                  Book this Service
+                </span>
+                <HiOutlineCalendar className="flex-none w-8 h-8 scale-x-[-1]" />
+              </div>
+            </Fragment>
+            <Fragment slot="header">
+              <h3 class="font-display font-bold ~text-2xl/4xl text-prose">
+                Service Enquiry
+              </h3>
+              <p class="text-prose text-primary-400">
+                Let us know a bit more about your trip and we will get back to
+                you with a quote
+              </p>
+            </Fragment>
+            <Fragment slot="main">
+              <EnquiryForm product={service} client:visible />
+            </Fragment>
+            <Fragment slot="footer">
+              <button
+                type="button"
+                class="text-prose/60 underline underline-offset-8"
+                onclick="document.getElementById('vehicle-rental-form')?.close()"
+              >
+                Back to Service Listing
+              </button>
+            </Fragment>
+          </Dialog>
+          <a
+            href="/contact"
+            class="flex items-center justify-between gap-6 border-primary-800 border-2 px-8 py-4 rounded-3xl text-primary-800 ~text-xl/2xl"
+          >
+            <span class="font-light whitespace-nowrap">Ask a Question </span>
+            <HiOutlineChatBubbleLeft
+              className="flex-none w-8 h-8 scale-x-[-1]"
+            />
+          </a>
+        </div>
+        <div class="flex flex-col gap-8">
+          <div class="flex items-center gap-10">
+            <h3 class="font-display text-xl text-prose">Other Services</h3>
+            <hr class="flex-1 border-t border-neutral-200" />
+          </div>
+          <ul class="grid gap-5 grid-cols-1 px-1">
+            {
+              services.map((service) => (
+                <li>
+                  <a
+                    href={`/${service.slug?.current ?? service._id}`}
+                    class="flex items-center gap-4"
+                  >
+                    <div class="flex-none relative border bg-surface rounded">
+                      <SanityImage
+                        className="flex-none w-24 aspect-[4/3] object-cover rounded"
+                        src={service.image}
+                      />
+                    </div>
+                    <div class="flex flex-col -mt-2">
+                      <h2 class="text-base font-display font-medium text-title leading-wide">
+                        {service.name}
+                      </h2>
+                      <p class="text-prose line-clamp-2 text-sm">
+                        {service.description}
+                      </p>
+                    </div>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>

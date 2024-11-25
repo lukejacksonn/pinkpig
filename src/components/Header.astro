@@ -1,0 +1,24 @@
+---
+import type { CompanyType } from "../schemas/documents/company/schema";
+import SanityImage from "./SanityImage";
+
+interface Props {
+  company: CompanyType;
+}
+
+const { company } = Astro.props;
+---
+
+<header class="flex items-center w-full ~gap-0/8">
+  <a href="/">
+    <SanityImage src={company.logo} className="~w-64/96" />
+  </a>
+  <hr class="w-full flex-1 border-t-1 border-line rounded-full mx-4" />
+  <div
+    class="flex items-center gap-3 [&>a]:uppercase [&>a]:font-prose [&>a]:~text-sm/lg [&>a]:text-primary-800/80 [&>a:hover]:text-primary-800 [&>a:hover]:underline [&>a]:underline-offset-8"
+  >
+    <a href="/vehicles">Vehicles</a>
+    <span class="font-display text-primary-800/20">&#8226;</span>
+    <a href="/contact">Contact</a>
+  </div>
+</header>

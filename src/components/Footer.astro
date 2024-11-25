@@ -1,0 +1,87 @@
+---
+import {
+  HiOutlineEnvelope,
+  HiOutlineMapPin,
+  HiOutlinePhone,
+} from "react-icons/hi2";
+import type { CompanyType } from "../schemas/documents/company/schema";
+import SanityImage from "./SanityImage";
+
+interface Props {
+  company: CompanyType;
+}
+
+const { company } = Astro.props;
+---
+
+<footer
+  class="flex flex-col-reverse lg:flex-row ~px-8/24 ~py-16/24 ~gap-16/24 bg-surface [clip-path:polygon(0_3rem,3rem_0,100%_0,100%_calc(100%-3rem),calc(100%-3rem)_100%,0%_100%)]"
+>
+  <div class="flex-none">
+    <div class="flex flex-col h-full ~gap-16/24">
+      <div class="flex flex-col ~gap-4/6">
+        <div class="flex items-center gap-6 text-title">
+          <HiOutlineEnvelope className="flex-none ~size-6/8" />
+          <a
+            class="~text-lg/xl font-prose break-all"
+            href={`mailto:${company.email}`}
+          >
+            {company.email}
+          </a>
+        </div>
+        <div class="flex items-center gap-6 text-title">
+          <HiOutlinePhone className="flex-none ~size-6/8" />
+          <a
+            class="~text-lg/xl font-prose break-all"
+            href={`tel:${company.phone}`}
+          >
+            {company.phone}
+          </a>
+        </div>
+        <div class="flex items-center gap-6 text-title max-w-[35ch]">
+          <HiOutlineMapPin className="flex-none ~size-6/8" />
+          <a
+            class="~text-lg/xl font-prose break-word"
+            href={"https://maps.app.goo.gl/qajx9wzg6TbsqSaEA"}
+          >
+            {company.address}
+          </a>
+        </div>
+      </div>
+      <div class="flex gap-8 mt-auto">
+        <a
+          href="/contact"
+          class="text-prose/60 text-xl hover:underline underline-offset-4"
+        >
+          Contact Us
+        </a>
+        <a
+          href="/about"
+          class="text-prose/60 text-xl hover:underline underline-offset-4"
+        >
+          About
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="self-stretch min-w-px min-h-px bg-line"></div>
+  <div class="relative flex-1 flex flex-col ~gap-12/24 items-start">
+    <blockquote
+      class="flex-1 text-left text-title/50 ~text-2xl/3xl font-prose font-thin italic !leading-[2cap] max-w-[50ch]"
+    >
+      {company.mission}
+    </blockquote>
+    <div class="flex gap-6 items-center">
+      <SanityImage
+        className="flex-none w-16 h-16 rounded-full grayscale"
+        src={company.avatar}
+      />
+      <cite
+        class="flex flex-col items-start font-medium ~text-sm/xl text-center text-title"
+      >
+        <span class="text-lg">{company.name}</span>
+        <span class="text-sm text-prose/80">Company Owner</span>
+      </cite>
+    </div>
+  </div>
+</footer>

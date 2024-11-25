@@ -1,0 +1,139 @@
+---
+import { ViewTransitions } from "astro:transitions";
+import { sanityClient } from "sanity:client";
+import imageUrlBuilder from "@sanity/image-url";
+
+import TopBar from "../components/TopBar.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+import { Company } from "../schemas/documents/company/schema";
+
+const { title, description, image } = Astro.props;
+
+const builder = imageUrlBuilder(sanityClient);
+const company = await Company.doc();
+
+const seo = {
+  title: `${title} | ${company.name}`,
+  description: description ?? company.description,
+  url: Astro.request.url,
+  icon: builder.image(company.icon).url(),
+  image: builder
+    .image(image ?? company.thumbnail)
+    .width(1200)
+    .height(630)
+    .quality(75)
+    .auto("format")
+    .url(),
+};
+---
+
+<html lang="en">
+  <head>
+    <!-- Required Meta Tags -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Title and Basic SEO -->
+    <title>{seo.title}</title>
+    <meta name="description" content={seo.description} />
+    <meta
+      name="keywords"
+      content="Paddock, Cars, Vehicles, Dealership, Buy, Sell, Rent, Lease, Dubai, UAE"
+    />
+
+    <!-- Robots -->
+    <meta name="robots" content="index, follow" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href={seo.url} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={seo.url} />
+    <meta property="og:title" content={seo.title} />
+    <meta property="og:description" content={seo.description} />
+    <meta property="og:image" content={seo.image} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={seo.url} />
+    <meta name="twitter:title" content={seo.title} />
+    <meta name="twitter:description" content={seo.description} />
+    <meta name="twitter:image" content={seo.image} />
+
+    <!-- Favicon -->
+    <link rel="icon" href={seo.icon} type="image/x-icon" />
+
+    <!-- CSS and Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" rel="stylesheet" as="style" />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Goldman:wght@400;700&family=Space+Grotesk:wght@300..700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Goldman:wght@400;700&family=Space+Grotesk:wght@300..700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Goldman:wght@400;700&family=Space+Grotesk:wght@300..700&display=swap"
+      />
+    </noscript>
+
+    <!-- Global Styles -->
+    <style is:global>
+      dialog[open] {
+        display: flex;
+      }
+
+      dialog[open]::backdrop {
+        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(24px);
+      }
+
+      dialog[open] > * {
+        transition: all 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
+        transform: scale(1) translateY(0);
+      }
+
+      @starting-style {
+        dialog[open]::backdrop {
+          background-color: rgba(0, 0, 0, 0);
+          backdrop-filter: blur(0px);
+        }
+        dialog[open] > * {
+          transform: scale(0.9) translateY(100%);
+        }
+      }
+
+      *::-webkit-scrollbar {
+        display: none;
+      }
+      * {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+
+    <!-- Astro Transitions -->
+    <ViewTransitions />
+  </head>
+  <body class="bg-base">
+    <TopBar company={company} />
+    <section class="~px-6/16 ~py-6/12 ~gap-6/12 flex flex-col items-center">
+      <Header company={company} />
+      <slot />
+    </section>
+    <Footer company={company} />
+  </body>
+</html>

@@ -1,0 +1,56 @@
+---
+import type { CompanyType } from "../schemas/documents/company/schema";
+import { SlSocialInstagram, SlSocialYoutube } from "react-icons/sl";
+import { FaTiktok } from "react-icons/fa";
+
+interface Props {
+  company: CompanyType;
+}
+
+const { company } = Astro.props;
+---
+
+<section
+  slot="shoutout"
+  class="flex items-center gap-4 bg-neutral-950 px-4 py-2 h-10 flex-none"
+>
+  <div class="flex gap-2 items-center">
+    <div class="flex items-center justify-center w-4 h-4">
+      <div class="absolute bg-green-400 w-3 h-3 animate-ping rounded-full">
+      </div>
+      <div class="absolute bg-green-400 w-2.5 h-2.5 rounded-full"></div>
+    </div>
+    <span class="text-base font-prose uppercase text-xs tracking-widest"
+      >Online</span
+    >
+  </div>
+  <marquee class="w-full flex items-center flex-1">
+    <div class="flex items-center gap-6">
+      {
+        company.announcements?.map((announcement, i, arr) => (
+          <>
+            <span class="text-base font-prose text-xs uppercase tracking-widest">
+              {announcement}
+            </span>
+            {i < arr.length - 1 && (
+              <span class="text-base font-prose text-xs uppercase tracking-widest">
+                •
+              </span>
+            )}
+          </>
+        ))
+      }
+    </div>
+  </marquee>
+  <div class="flex gap-3 items-center">
+    <a href="https://www.youtube.com/@paddockrentacar" aria-label="YouTube">
+      <SlSocialYoutube className="w-5 h-5 text-base fill-current" />
+    </a>
+    <a href="https://www.instagram.com/paddockrentacar" aria-label="Instagram">
+      <SlSocialInstagram className="w-4 h-4 text-base fill-current" />
+    </a>
+    <a href="https://www.tiktok.com/@paddock.rentacar" aria-label="Tiktok">
+      <FaTiktok className="w-4 h-4 text-base fill-current" />
+    </a>
+  </div>
+</section>
